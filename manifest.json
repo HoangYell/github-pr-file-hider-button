@@ -1,0 +1,21 @@
+{
+    "manifest_version": 3,
+    "name": "GitHub PR File Hider Button",
+    "version": "1.0",
+    "description": "Adds a button to hide individual files in GitHub Pull Request reviews.",
+    "permissions": [
+      "activeTab"
+    ],
+    "content_scripts": [
+      {
+        "matches": ["https://github.com/*/*/pull/*"],
+        "js": ["content.js"],
+        "css": ["styles.css"],
+        "run_at": "document_idle"
+      }
+    ],
+     "icons": {
+        "48": "icon48.png",
+        "128": "icon128.png"
+     }
+  }
