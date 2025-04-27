@@ -1,157 +1,101 @@
 /**
  * GitHub PR File Hider Button
- * Clean, performant, and maintainable implementation.
+ * Toggle file visibility in PR file tree, minimal DOM changes.
  */
 
-function ensureHiddenFilesContainer() {
-    let container = document.getElementById('pr-hidden-files-container');
-    if (!container) {
-        const tree = document.querySelector('file-tree nav ul.ActionList');
-        if (!tree) return null;
-
-        // Create container and label
-        container = document.createElement('ul');
-        container.id = 'pr-hidden-files-container';
-        container.className = 'ActionList ActionList--tree ActionList--full';
-        container.style.borderTop = '1px solid #eee';
-
-        const label = document.createElement('div');
-        label.textContent = 'Hidden Files';
-        label.style.fontWeight = 'bold';
-        label.style.fontSize = '13px';
-        label.style.margin = '20px 0 4px 8px';
-
-        tree.parentNode.appendChild(label);
-        tree.parentNode.appendChild(container);
-    }
-    return container;
-}
-
-// Add hide buttons to all file nodes in the tree
-function addHideButtonsToFileTree(treeRoot) {
-    const nodes = (treeRoot || document).querySelectorAll(
-        'li.js-tree-node[data-tree-entry-type="file"]:not([data-hide-btn])'
-    );
-    nodes.forEach(async fileNode => {
-        fileNode.setAttribute('data-hide-btn', '1');
-        const filePath = fileNode.querySelector('span[data-filterable-item-text]')?.textContent?.trim();
-        if (!filePath) return;
-
-        const btn = document.createElement('button');
-        btn.className = 'btn btn-sm hide-tree-file-button';
-        btn.style.marginLeft = '8px';
-        btn.type = 'button';
-        btn.dataset.filePath = filePath;
-        btn.textContent = 'Hide';
-
-        const label = fileNode.querySelector('.ActionList-item-label');
-        if (label) label.parentNode.appendChild(btn);
+// Add "Show All Hidden Files" button
+function addShowAllButton() {
+    if (document.getElementById('show-all-hidden-files-btn')) return;
+    const tree = document.querySelector('file-tree nav ul.ActionList');
+    if (!tree) return;
+    const btn = Object.assign(document.createElement('button'), {
+        id: 'show-all-hidden-files-btn',
+        textContent: 'Show All Hidden Files',
+        className: 'btn btn-sm',
+        style: 'margin:8px 0 8px 8px'
     });
-}
-
-// Move a file node to the hidden container and update UI
-async function hideFileNode(fileNode, btn) {
-    const hiddenContainer = ensureHiddenFilesContainer();
-    if (hiddenContainer) {
-        hiddenContainer.appendChild(fileNode);
-        btn.textContent = 'Unhide';
-        btn.classList.add('unhide-tree-file-button');
-        btn.classList.remove('hide-tree-file-button');
-    }
-    toggleDiffPanel(fileNode, false);
-}
-
-// Move a file node back to the main tree in sorted order and update UI
-async function unhideFileNode(fileNode, btn) {
-    const mainTree = document.querySelector('file-tree nav ul.ActionList');
-    if (!mainTree) return;
-
-    const filePath = fileNode.querySelector('span[data-filterable-item-text]')?.textContent?.trim();
-    let inserted = false;
-
-    // Insert in sorted order among direct children
-    for (const node of mainTree.children) {
-        if (
-            node !== fileNode &&
-            node.matches &&
-            node.matches('li.js-tree-node[data-tree-entry-type="file"]')
-        ) {
-            const nodePath = node.querySelector('span[data-filterable-item-text]')?.textContent?.trim();
-            if (nodePath && filePath && filePath.localeCompare(nodePath) < 0) {
-                mainTree.insertBefore(fileNode, node);
-                inserted = true;
-                break;
+    btn.onclick = () => {
+        document.querySelectorAll('li.js-tree-node[data-tree-entry-type="file"]').forEach(fileNode => {
+            fileNode.style.display = '';
+            const hideBtn = fileNode.querySelector('.unhide-tree-file-button, .hide-tree-file-button');
+            if (hideBtn) {
+                hideBtn.textContent = 'Hide';
+                hideBtn.classList.add('hide-tree-file-button');
+                hideBtn.classList.remove('unhide-tree-file-button');
             }
-        }
-    }
-    if (!inserted) {
-        mainTree.appendChild(fileNode);
-    }
+            toggleDiffPanel(fileNode, true);
+        });
+    };
+    tree.parentNode.insertBefore(btn, tree);
+}
 
-    btn.textContent = 'Hide';
-    btn.classList.add('hide-tree-file-button');
-    btn.classList.remove('unhide-tree-file-button');
+// Add hide/unhide button to a file node if not present
+function addHideButtonToFileNode(fileNode) {
+    if (fileNode.querySelector('.hide-tree-file-button, .unhide-tree-file-button')) return;
+    const btn = Object.assign(document.createElement('button'), {
+        className: 'btn btn-sm hide-tree-file-button',
+        type: 'button',
+        textContent: 'Hide',
+        style: 'margin-left:2px;font-size:9px'
+    });
+    const label = fileNode.querySelector('.ActionList-item-label');
+    if (label) label.parentNode.appendChild(btn);
+}
 
-    toggleDiffPanel(fileNode, true);
+// Add hide buttons to all file nodes
+function addHideButtonsToFileTree(treeRoot) {
+    (treeRoot || document)
+        .querySelectorAll('li.js-tree-node[data-tree-entry-type="file"]')
+        .forEach(addHideButtonToFileNode);
+}
+
+// Toggle file node and diff panel visibility
+function toggleFileNode(fileNode, btn, hide) {
+    fileNode.style.display = hide ? 'none' : '';
+    btn.textContent = hide ? 'Unhide' : 'Hide';
+    btn.classList.toggle('hide-tree-file-button', !hide);
+    btn.classList.toggle('unhide-tree-file-button', hide);
+    toggleDiffPanel(fileNode, !hide);
 }
 
 // Show or hide the diff panel for a file node
 function toggleDiffPanel(fileNode, show) {
     const anchor = fileNode.querySelector('a.ActionList-content');
-    if (anchor && anchor.getAttribute('href')?.startsWith('#diff-')) {
-        const diffId = anchor.getAttribute('href').slice(1);
-        const diffPanel = document.getElementById(diffId);
-        if (diffPanel) {
-            const fileContainer = diffPanel.closest('.file');
-            if (fileContainer) {
-                fileContainer.style.display = show ? '' : 'none';
-            } else {
-                diffPanel.style.display = show ? '' : 'none';
-            }
-        }
-    }
+    const href = anchor?.getAttribute('href');
+    if (!href?.startsWith('#diff-')) return;
+    const diffPanel = document.getElementById(href.slice(1));
+    const fileContainer = diffPanel?.closest('.file');
+    (fileContainer || diffPanel).style.display = show ? '' : 'none';
 }
 
 // Event delegation for hide/unhide buttons
-document.addEventListener('click', async function (e) {
-    const btn = e.target;
-    if (btn.classList.contains('hide-tree-file-button')) {
-        const fileNode = btn.closest('li.js-tree-node[data-tree-entry-type="file"]');
-        if (fileNode) await hideFileNode(fileNode, btn);
-    } else if (btn.classList.contains('unhide-tree-file-button')) {
-        const fileNode = btn.closest('li.js-tree-node[data-tree-entry-type="file"]');
-        if (fileNode) await unhideFileNode(fileNode, btn);
-    }
+document.addEventListener('click', e => {
+    const btn = e.target.closest('.hide-tree-file-button, .unhide-tree-file-button');
+    if (!btn) return;
+    const fileNode = btn.closest('li.js-tree-node[data-tree-entry-type="file"]');
+    if (!fileNode) return;
+    toggleFileNode(fileNode, btn, btn.classList.contains('hide-tree-file-button'));
 });
-
-// Debounced mutation observer for dynamic file trees
-let debounceTimer = null;
-function debouncedAddButtons(treeRoot) {
-    if (debounceTimer) clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => addHideButtonsToFileTree(treeRoot), 100);
-}
 
 // Observe file tree changes and add buttons as needed
 function observeTreeChanges() {
     const tree = document.querySelector('file-tree nav ul.ActionList');
-    if (!tree) {
-        setTimeout(observeTreeChanges, 500);
-        return;
-    }
+    if (!tree) return setTimeout(observeTreeChanges, 500);
     addHideButtonsToFileTree(tree);
-    new MutationObserver(mutations => {
-        for (const m of mutations) {
-            m.addedNodes.forEach(node => {
-                if (
-                    node.nodeType === 1 &&
-                    node.matches('li.js-tree-node[data-tree-entry-type="file"]')
-                ) {
-                    debouncedAddButtons(tree);
-                }
-            });
-        }
+    addShowAllButton();
+    let debounce;
+    new MutationObserver(() => {
+        clearTimeout(debounce);
+        debounce = setTimeout(() => {
+            addHideButtonsToFileTree(tree);
+            addShowAllButton();
+        }, 100);
     }).observe(tree, { childList: true, subtree: true });
 }
 
 // Initialize after DOM is ready
-setTimeout(observeTreeChanges, 500);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(observeTreeChanges, 500));
+} else {
+    setTimeout(observeTreeChanges, 500);
+}
