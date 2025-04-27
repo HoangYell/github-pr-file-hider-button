@@ -1,34 +1,21 @@
-
-/* Hide tree items completely when they are hidden */
-.file-info[style*="display: none;"] { display: none !important; }
-
-/* Style the 'Hide File' button in the tree view */
-.hide-tree-file-button {
-    margin-left: 8px;
-    font-size: 12px;
-    padding: 2px 6px;
-}
-
-  /* Style the file container when its content is hidden */
-  .file.pr-file-hidden-collapsed .file-header {
-      border-bottom: 1px dashed #ccc !important; /* Add a dashed line under header when collapsed */
-  }
-  
-  .file.pr-file-hidden-collapsed {
-      margin-bottom: 10px; /* Add some space below collapsed files */
-  }
-  
-  /* Ensure the hidden content area takes up no space */
-  .js-file-content[style*="display: none;"] {
-      padding: 0 !important;
-      margin: 0 !important;
-      border: none !important;
-  }
-
-  #pr-hidden-files-container {
-    background: #fafbfc;
+/* --- Hidden Files Container --- */
+#pr-hidden-files-container {
     border-radius: 4px;
     min-height: 10px;
     margin-bottom: 8px;
     padding-bottom: 4px;
+}
+
+/* --- File Tree Hide/Unhide Button Styles --- */
+.hide-tree-file-button,
+.unhide-tree-file-button {
+    margin-left: 8px;
+    font-size: 12px;
+    padding: 2px 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.hide-tree-file-button:hover,
+.unhide-tree-file-button:hover {
+    background: #f3f4f6;
 }
