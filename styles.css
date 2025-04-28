@@ -9,7 +9,6 @@
 /* --- File Tree Hide/Unhide Button Styles --- */
 .hide-tree-file-button,
 .unhide-tree-file-button {
-    margin-left: 8px;
     font-size: 12px;
     padding: 2px 6px;
     cursor: pointer;
@@ -18,4 +17,17 @@
 .hide-tree-file-button:hover,
 .unhide-tree-file-button:hover {
     background: #f3f4f6;
+}
+
+/* Make file tree file nodes flex for better button alignment */
+li.js-tree-node[data-tree-entry-type="file"] {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Prevent the file link from stretching too much */
+li.js-tree-node[data-tree-entry-type="file"] > a.ActionList-content {
+    flex: 1 1 auto;
+    min-width: 0;
 }
