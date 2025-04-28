@@ -1,3 +1,26 @@
+/**
+ * GitHub PR File Hider Button
+ * Toggle file visibility in PR file tree, minimal DOM changes.
+ */
+
+
+// Hide empty directories in the file tree
+function hideEmptyDirectories(treeRoot) {
+    const dirNodes = (treeRoot || document).querySelectorAll('li.js-tree-node[data-tree-entry-type="directory"]');
+    dirNodes.forEach(dirNode => {
+        // Find all visible file nodes under this directory
+        const visibleFiles = dirNode.querySelectorAll('li.js-tree-node[data-tree-entry-type="file"]:not([style*="display: none"])');
+        // Find all visible subdirectories
+        const visibleDirs = dirNode.querySelectorAll('li.js-tree-node[data-tree-entry-type="directory"]:not([style*="display: none"])');
+        // Hide if no visible files or subdirectories
+        if (visibleFiles.length === 0 && visibleDirs.length === 0) {
+            dirNode.style.display = 'none';
+        } else {
+            dirNode.style.display = '';
+        }
+    });
+}
+
 // Utility: Get file tree root for PR or commit screen
 function getFileTreeRoot() {
     // PR: file-tree nav ul.ActionList
@@ -10,11 +33,6 @@ function getFileTreeRoot() {
     tree = document.querySelector('.toc-diff-stats + ul.ActionList');
     return tree;
 }
-
-/**
- * GitHub PR File Hider Button
- * Toggle file visibility in PR file tree, minimal DOM changes.
- */
 
 // Add "Show All Hidden Files" button
 function addShowAllButton() {
@@ -38,6 +56,7 @@ function addShowAllButton() {
             }
             toggleDiffPanel(fileNode, true);
         });
+        hideEmptyDirectories(tree);
     };
     tree.parentNode.insertBefore(btn, tree);
 }
@@ -62,11 +81,12 @@ function addHideButtonToFileNode(fileNode) {
     }
 }
 
-// Add hide buttons to all file nodes
+// Update addHideButtonsToFileTree to call hideEmptyDirectories
 function addHideButtonsToFileTree(treeRoot) {
     (treeRoot || document)
         .querySelectorAll('li.js-tree-node[data-tree-entry-type="file"]')
         .forEach(addHideButtonToFileNode);
+    hideEmptyDirectories(treeRoot);
 }
 
 // Toggle file node and diff panel visibility
@@ -76,6 +96,9 @@ function toggleFileNode(fileNode, btn, hide) {
     btn.classList.toggle('hide-tree-file-button', !hide);
     btn.classList.toggle('unhide-tree-file-button', hide);
     toggleDiffPanel(fileNode, !hide);
+    // Hide empty directories after toggling
+    const tree = getFileTreeRoot();
+    hideEmptyDirectories(tree);
 }
 
 // Show or hide the diff panel for a file node
