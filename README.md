@@ -65,4 +65,10 @@ Use it, fork it, hide all the files you want.
 
 ---
 
+## Privacy Policy
+
+This extension does not collect, store, or transmit any user data.
+
+---
+
 Made with ❤️ by [HoangYell](https://hoangyell.com/) and [contributors](https://github.com/HoangYell/github-pr-file-hider-button/graphs/contributors).
