@@ -18,7 +18,7 @@ function getFileTreeRoot(force = false) {
     return cachedTreeRoot;
 }
 
-// Add CSS for hidden class once
+// Add CSS for hidden class once (now only for hiding, rest is in styles.css)
 (function injectHideStyle() {
     if (!document.getElementById('gh-pr-file-hider-style')) {
         const style = document.createElement('style');
@@ -28,7 +28,7 @@ function getFileTreeRoot(force = false) {
     }
 })();
 
-// Hide empty directories in the file tree
+// Hide empty directories in the file tree (recursive, bottom-up)
 function hideEmptyDirectories(treeRoot = document) {
     const dirNodes = Array.from(treeRoot.querySelectorAll('li.js-tree-node[data-tree-entry-type="directory"]'))
         .sort((a, b) => b.querySelectorAll('li.js-tree-node[data-tree-entry-type="directory"]').length - a.querySelectorAll('li.js-tree-node[data-tree-entry-type="directory"]').length);
@@ -47,8 +47,8 @@ function addShowAllButton() {
     const btn = Object.assign(document.createElement('button'), {
         id: 'show-all-hidden-files-btn',
         textContent: 'Show All Hidden Files',
-        className: 'btn btn-sm',
-        style: 'margin:8px 0 8px 8px'
+        className: 'btn btn-sm hide-tree-file-button', // Use class for styling
+        // No inline style
     });
     btn.onclick = () => {
         tree.querySelectorAll('li.js-tree-node[data-tree-entry-type="file"].' + HIDDEN_CLASS).forEach(fileNode => {
@@ -72,8 +72,7 @@ function addHideButtonToFileNode(fileNode) {
     const btn = Object.assign(document.createElement('button'), {
         className: 'btn btn-sm hide-tree-file-button',
         type: 'button',
-        textContent: 'Hide',
-        style: 'margin-left:8px;font-size:12px'
+        textContent: 'Hide'
     });
     const anchor = fileNode.querySelector('a.ActionList-content');
     (anchor ? anchor : fileNode).insertAdjacentElement(anchor ? 'afterend' : 'beforeend', btn);
@@ -126,8 +125,7 @@ function addShareButton() {
     const btn = Object.assign(document.createElement('button'), {
         id: 'share-hidden-files-btn',
         textContent: 'Share Hidden State',
-        className: 'btn btn-sm',
-        style: 'margin:8px 0 8px 8px'
+        className: 'btn btn-sm hide-tree-file-button'
     });
     btn.onclick = () => {
         const hiddenFiles = [];
