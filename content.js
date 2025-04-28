@@ -1,3 +1,16 @@
+// Utility: Get file tree root for PR or commit screen
+function getFileTreeRoot() {
+    // PR: file-tree nav ul.ActionList
+    let tree = document.querySelector('file-tree nav ul.ActionList');
+    if (tree) return tree;
+    // Commit: .js-diff-progressive-container > .ActionList
+    tree = document.querySelector('.js-diff-progressive-container > ul.ActionList');
+    if (tree) return tree;
+    // Commit (old layout fallback): .toc-diff-stats + .ActionList
+    tree = document.querySelector('.toc-diff-stats + ul.ActionList');
+    return tree;
+}
+
 /**
  * GitHub PR File Hider Button
  * Toggle file visibility in PR file tree, minimal DOM changes.
@@ -6,7 +19,7 @@
 // Add "Show All Hidden Files" button
 function addShowAllButton() {
     if (document.getElementById('show-all-hidden-files-btn')) return;
-    const tree = document.querySelector('file-tree nav ul.ActionList');
+    const tree = getFileTreeRoot();
     if (!tree) return;
     const btn = Object.assign(document.createElement('button'), {
         id: 'show-all-hidden-files-btn',
@@ -15,7 +28,7 @@ function addShowAllButton() {
         style: 'margin:8px 0 8px 8px'
     });
     btn.onclick = () => {
-        document.querySelectorAll('li.js-tree-node[data-tree-entry-type="file"]').forEach(fileNode => {
+        tree.querySelectorAll('li.js-tree-node[data-tree-entry-type="file"]').forEach(fileNode => {
             fileNode.style.display = '';
             const hideBtn = fileNode.querySelector('.unhide-tree-file-button, .hide-tree-file-button');
             if (hideBtn) {
@@ -36,10 +49,17 @@ function addHideButtonToFileNode(fileNode) {
         className: 'btn btn-sm hide-tree-file-button',
         type: 'button',
         textContent: 'Hide',
-        style: 'margin-left:2px;font-size:9px'
+        style: 'margin-left:8px;font-size:12px'
     });
-    const label = fileNode.querySelector('.ActionList-item-label');
-    if (label) label.parentNode.appendChild(btn);
+    // Find the ActionList-content <a>
+    const anchor = fileNode.querySelector('a.ActionList-content');
+    if (anchor) {
+        // Insert the button after the anchor
+        anchor.insertAdjacentElement('afterend', btn);
+    } else {
+        // fallback: append to fileNode
+        fileNode.appendChild(btn);
+    }
 }
 
 // Add hide buttons to all file nodes
@@ -79,7 +99,7 @@ document.addEventListener('click', e => {
 
 // Observe file tree changes and add buttons as needed
 function observeTreeChanges() {
-    const tree = document.querySelector('file-tree nav ul.ActionList');
+    const tree = getFileTreeRoot();
     if (!tree) return setTimeout(observeTreeChanges, 500);
     addHideButtonsToFileTree(tree);
     addShowAllButton();
