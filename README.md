@@ -14,7 +14,7 @@ Folders with nothing left? They vanish too. ✨
 - 👀 **Show All Hidden Files:** One click brings everything back. (No need to beg.)
 - 🔗 **Share Hidden State:** Copy a link that preserves your hidden files. Share your focused view with teammates!
 - ⚡ **Minimal DOM Changes:** Fast, efficient, and doesn’t break GitHub’s UI.
-- 🎨 **Clean Styles:** All styles live in `styles.css`, not sprinkled through the code like parmesan on pasta.
+- 🌐 **Scope:** Works seamlessly on both the commit screen and PR screen.
 
 ---
 
