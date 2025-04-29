@@ -32,10 +32,14 @@ Folders with nothing left? They vanish too. ✨
 ## Usage
 
 - Click **Hide** next to any file in the file tree to make it disappear (from the tree and the diff).
-- Click **Unhide** to bring it back.
 - Click **Show All Hidden Files** to restore everything.
 - Click **Share Hidden State** to copy a link that preserves your hidden files (great for code reviews).
 
+![Hide Buttons](https://github.com/HoangYell/github-pr-file-hider-button/blob/main/images_note/Hide%20Share%20buttons.png)
+
+![Share Hidden Files](https://github.com/HoangYell/github-pr-file-hider-button/blob/main/images_note/Share%20Hidden%20State.png)
+
+![Result](https://github.com/HoangYell/github-pr-file-hider-button/blob/main/images_note/Hidden%20Files.jpg)
 ---
 
 ## FAQ
