@@ -4,9 +4,7 @@
   "version": "1.0",
   "homepage_url": "https://github.com/HoangYell/github-pr-file-hider-button",
   "description": "Adds a button to hide individual files in GitHub Pull Request reviews.",
-  "permissions": [
-    "activeTab"
-  ],
+  "permissions": [],
   "content_scripts": [
     {
       "matches": [
