@@ -47,10 +47,13 @@ function addShowAllButton() {
     const btn = Object.assign(document.createElement('button'), {
         id: 'show-all-hidden-files-btn',
         textContent: 'Show All Hidden Files',
-        className: 'btn btn-sm hide-tree-file-button', // Use class for styling
-        // No inline style
+        className: 'btn btn-sm hide-tree-file-button',
     });
-    btn.onclick = () => {
+    let isProcessing = false;
+    btn.onclick = async () => {
+        if (isProcessing) return;
+        isProcessing = true;
+        btn.disabled = true;
         tree.querySelectorAll('li.js-tree-node[data-tree-entry-type="file"].' + HIDDEN_CLASS).forEach(fileNode => {
             fileNode.classList.remove(HIDDEN_CLASS);
             const hideBtn = fileNode.querySelector('.unhide-tree-file-button, .hide-tree-file-button');
@@ -62,6 +65,9 @@ function addShowAllButton() {
             toggleDiffPanel(fileNode, true);
         });
         hideEmptyDirectories(tree);
+        await new Promise(r => setTimeout(r, 100)); // debounce for UI update
+        btn.disabled = false;
+        isProcessing = false;
     };
     tree.parentNode.insertBefore(btn, tree);
 }
@@ -74,6 +80,17 @@ function addHideButtonToFileNode(fileNode) {
         type: 'button',
         textContent: 'Hide'
     });
+    let isProcessing = false;
+    btn.onclick = async (e) => {
+        e.stopPropagation();
+        if (isProcessing) return;
+        isProcessing = true;
+        btn.disabled = true;
+        toggleFileNode(fileNode, btn, btn.classList.contains('hide-tree-file-button'));
+        await new Promise(r => setTimeout(r, 100)); // debounce for UI update
+        btn.disabled = false;
+        isProcessing = false;
+    };
     const anchor = fileNode.querySelector('a.ActionList-content');
     (anchor ? anchor : fileNode).insertAdjacentElement(anchor ? 'afterend' : 'beforeend', btn);
 }
@@ -108,13 +125,16 @@ function toggleFileNode(fileNode, btn, hide) {
     }
 }
 
-// Event delegation for hide/unhide buttons
+// Event delegation for hide/unhide buttons (fallback for dynamically added buttons)
 document.addEventListener('click', e => {
     const btn = e.target.closest('.hide-tree-file-button, .unhide-tree-file-button');
     if (!btn) return;
+    if (btn.disabled) return; // Prevent race on rapid clicks
     const fileNode = btn.closest('li.js-tree-node[data-tree-entry-type="file"]');
     if (!fileNode) return;
+    btn.disabled = true;
     toggleFileNode(fileNode, btn, btn.classList.contains('hide-tree-file-button'));
+    setTimeout(() => { btn.disabled = false; }, 100); // debounce
 });
 
 // Add "Share Hidden State" button
@@ -127,17 +147,27 @@ function addShareButton() {
         textContent: 'Share Hidden State',
         className: 'btn btn-sm hide-tree-file-button'
     });
-    btn.onclick = () => {
+    let isProcessing = false;
+    btn.onclick = async () => {
+        if (isProcessing) return;
+        isProcessing = true;
+        btn.disabled = true;
         const hiddenFiles = [];
         tree.querySelectorAll('li.js-tree-node[data-tree-entry-type="file"]').forEach((fileNode, idx) => {
             if (fileNode.classList.contains(HIDDEN_CLASS)) hiddenFiles.push(idx);
         });
         const url = new URL(window.location.href);
         url.hash = 'hide=' + hiddenFiles.join(',');
-        navigator.clipboard.writeText(url.toString()).then(() => {
+        try {
+            await navigator.clipboard.writeText(url.toString());
             btn.textContent = 'Link Copied!';
             setTimeout(() => { btn.textContent = 'Share Hidden State'; }, 1500);
-        });
+        } catch (e) {
+            btn.textContent = 'Copy Failed!';
+            setTimeout(() => { btn.textContent = 'Share Hidden State'; }, 1500);
+        }
+        btn.disabled = false;
+        isProcessing = false;
     };
     tree.parentNode.insertBefore(btn, tree.nextSibling);
 }
@@ -156,40 +186,54 @@ function restoreHiddenStateFromParams() {
         !fileNodes.length ||
         fileNodes.some(node => !node.querySelector('.hide-tree-file-button, .unhide-tree-file-button'))
     ) {
-        alert('Not all file nodes/buttons are ready. Try again in a moment.');
+        setTimeout(restoreHiddenStateFromParams, 200); // Wait for buttons to be ready
         return;
     }
     indices.forEach(idx => {
         const fileNode = fileNodes[idx];
         if (fileNode && !fileNode.classList.contains(HIDDEN_CLASS)) {
             const btn = fileNode.querySelector('.hide-tree-file-button, .unhide-tree-file-button');
-            if (btn) {toggleFileNode(fileNode, btn, true)} else {alert('Button not found!'); return; };
+            if (btn) {toggleFileNode(fileNode, btn, true);} // No alert, just skip if not found
         }
     });
 }
 
 // Observe file tree changes and add buttons as needed
+let treeObserver = null;
 function observeTreeChanges() {
+    cachedTreeRoot = null;
+    if (treeObserver) {
+        treeObserver.disconnect();
+        treeObserver = null;
+    }
     const tree = getFileTreeRoot(true);
     if (!tree) return setTimeout(observeTreeChanges, 500);
     addHideButtonsToFileTree(tree);
     addShowAllButton();
     addShareButton();
     let debounce;
-    new MutationObserver(() => {
+    treeObserver = new MutationObserver(() => {
         clearTimeout(debounce);
         debounce = setTimeout(() => {
             addHideButtonsToFileTree(tree);
             addShowAllButton();
             addShareButton();
         }, 100);
-    }).observe(tree, { childList: true, subtree: true });
+    });
+    treeObserver.observe(tree, { childList: true, subtree: true });
     restoreHiddenStateFromParams();
 }
 
-// Initialize after DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(observeTreeChanges, 500));
-} else {
+// Robust initialization for SPA navigation and race conditions
+function initFileHider() {
     setTimeout(observeTreeChanges, 500);
 }
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFileHider);
+} else {
+    initFileHider();
+}
+document.addEventListener('pjax:end', initFileHider);
+document.addEventListener('turbo:render', initFileHider);
+document.addEventListener('turbo:load', initFileHider);
