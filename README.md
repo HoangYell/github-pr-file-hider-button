@@ -21,7 +21,7 @@ Folders with nothing left? They vanish too. ✨
 ## Installation
 
 1. Clone or download this repo.
-2. Go to <a href="chrome://extensions" target="_blank">chrome://extensions</a> in Chrome.
+2. Go to `chrome://extensions` in Chrome.
 3. Enable "Developer mode" (top right).
 4. Click "Load unpacked" and select this folder.
 5. Open a GitHub PR’s "Files changed" tab.  
