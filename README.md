@@ -31,12 +31,6 @@ Folders with nothing left? They vanish too. ✨
 
 ## Usage
 
-> ⚠️ **Heads up!**  
-> The buttons only appear if you open the Files Changed" page directly (like with 
-<a href="http://www.github.com/HoangYell/github-pr-file-hider-button/pull/2/files" target="_blank">a refresh or direct link</a>)
-> If you click to the page from another GitHub tab (using the top navigation), the buttons might not show up.  
-> _It's not a bug, it's a feature. I swear!_ 🐞👻
-
 - Click **Hide** next to any file in the file tree to make it disappear (from the tree and the diff).
 - Click **Show All Hidden Files** to restore everything.
 - Click **Share Hidden State** to copy a link that preserves your hidden files (great for code reviews).
