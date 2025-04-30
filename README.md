@@ -43,8 +43,8 @@ This Chrome extension helps you focus by hiding irrelevant files — so you can 
 5. Navigate to a GitHub PR’s **Files changed** tab.  
    You’ll see new **Hide** and **Share** buttons appear next to each file.
 
-> ⚠️ Not in the Chrome Web Store yet — manual install required.
-
+### 🧪 Chrome Web Store
+- [**Install from the Chrome Web Store**](https://chromewebstore.google.com/detail/github-pr-file-hider-butt/mojhgeodfmcdjaphhknepogemmkneejh?utm_source=item-share-cb)
 ---
 
 ## Usage
