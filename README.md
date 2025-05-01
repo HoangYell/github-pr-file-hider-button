@@ -61,7 +61,7 @@ This Chrome extension helps you focus by hiding irrelevant files — so you can 
 
 ![Result](https://github.com/HoangYell/github-pr-file-hider-button/blob/main/images/Hidden%20Files.jpg)
 
-> [Watch the video tutorial](https://www.youtube.com/watch?v=6-ynBo6dB8E) for a quick demo of how to use the extension.
+> [Watch the video tutorial](https://www.youtube.com/watch?v=RXn8ryoexGc) for a quick demo of how to use the extension.
 
 ---
 
